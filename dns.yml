@@ -1,0 +1,36 @@
+version: '3.3'
+
+networks:
+  dnsNet:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.18.0.0/24"
+          gateway: 172.18.0.1
+
+services:
+  adguardhome:
+    container_name: adguardhome
+    restart: always
+    networks:
+      dnsNet:
+        ipv4_address: 172.18.0.2
+    volumes:
+      - '/docker/adguardhome/work:/opt/adguardhome/work'
+      - '/docker/adguardhome/confdir:/opt/adguardhome/conf'
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '3000:3000/tcp'
+    image: adguard/adguardhome
+  smartdns:
+    ports:
+      - '6053:53/udp'
+    restart: always
+    networks:
+      dnsNet:
+        ipv4_address: 172.18.0.3
+    container_name: gsmartdns
+    volumes:
+      - '/docker/smartdns:/smartdns'
+    image: ghostry/smartdns

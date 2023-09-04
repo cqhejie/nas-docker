@@ -1,0 +1,187 @@
+version: '3'
+services:
+
+ # 资源下载器
+ # qBittorrent: https://hub.docker.com/r/linuxserver/qbittorrent
+ qbittorrent:
+   image: linuxserver/qbittorrent:latest
+   container_name: qbittorrent
+   hostname: qbittorrent
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+     - WEBUI_PORT=6080
+   ports:
+     - 6080:6080
+     - 56881:56881
+     - 56881:56881/udp
+   volumes:
+     - ./qbittorrent/config:/config
+     - /volume1/video:/video # 影音&下载根目录
+
+ # 资源索引器
+ # Jackett: https://hub.docker.com/r/linuxserver/jackett
+ jackett:
+   image: linuxserver/jackett:latest
+   container_name: jackett
+   hostname: jackett
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+     - AUTO_UPDATE=true
+   ports:
+     - 9117:9117
+   volumes:
+     - ./jackett/config:/config
+
+ # 资源索引器
+ # Prowlarr: https://hub.docker.com/r/linuxserver/prowlarr
+ # prowlarr:
+ #   image: linuxserver/prowlarr:develop
+ #   container_name: prowlarr
+ #   hostname: prowlarr
+ #   restart: always
+ #   environment:
+ #     - PUID=1026
+ #     - PGID=101
+ #     - TZ=Asia/Shanghai
+ #   ports:
+ #     - 9696:9696
+ #   volumes:
+ #     - ./prowlarr/config:/config
+
+ # 资源索引器插件（解决 CloudFlare 5秒盾）
+ # FlareSolverr: https://hub.docker.com/r/flaresolverr/flaresolverr
+ flaresolverr:
+   image: flaresolverr/flaresolverr:latest
+   container_name: flaresolverr
+   hostname: flaresolverr
+   restart: always
+   environment:
+     - TZ=Asia/Shanghai
+     - LOG_LEVEL=info
+
+ # 火狐浏览器（可以不装）
+ # Firefox: https://hub.docker.com/r/fogforest/firefox
+ firefox:
+   image: fogforest/firefox:latest
+   container_name: firefox
+   hostname: firefox
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+   ports:
+     - 3005:3000
+   volumes:
+     - ./firefox/config:/config
+   shm_size: "1gb"
+
+ # 资源刮削器（电影）
+ # Radarr: https://hub.docker.com/r/linuxserver/radarr
+ radarr:
+   image: linuxserver/radarr:latest
+   container_name: radarr
+   hostname: radarr
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+   ports:
+     - 7878:7878
+   volumes:
+     - ./radarr/config:/config
+     - /volume1/video:/video # 影音&下载根目录
+
+ # 资源刮削器（电视剧&番剧）
+ # Sonarr: https://hub.docker.com/r/linuxserver/sonarr
+ sonarr:
+   image: linuxserver/sonarr:latest
+   container_name: sonarr
+   hostname: sonarr
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+   ports:
+     - 8989:8989
+   volumes:
+     - ./sonarr/config:/config
+     - /volume1/video:/video # 影音&下载根目录
+
+ # 字幕刮削器
+ # ChineseSubFinder: https://hub.docker.com/r/allanpk716/chinesesubfinder
+ chinesesubfinder:
+   image: allanpk716/chinesesubfinder:latest
+   container_name: chinesesubfinder
+   hostname: chinesesubfinder
+   restart: always
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+     - PERMS=true
+     - UMASK=022
+   ports:
+     - 19035:19035
+     - 19037:19037
+   volumes:
+     - ./chinesesubfinder/config:/config
+     - /volume1/video:/media # 影音&下载根目录
+
+ # 影音库
+ # Jellyfin: https://hub.docker.com/r/nyanmisaka/jellyfin
+ jellyfin:
+   image: nyanmisaka/jellyfin:latest
+   container_name: jellyfin
+   hostname: jellyfin
+   restart: always
+   devices:
+     - /dev/dri:/dev/dri
+   environment:
+     - PUID=1026
+     - PGID=101
+     - TZ=Asia/Shanghai
+   ports:
+     - 8096:8096
+   volumes:
+     - ./jellyfin/config:/config
+     - /volume1/video:/media # 影音&下载根目录
+
+ # 资源聚合搜索
+ # Jellyseerr: https://hub.docker.com/r/fallenbagel/jellyseerr
+ jellyseerr:
+   image: fallenbagel/jellyseerr:latest
+   container_name: jellyseerr
+   hostname: jellyseerr
+   restart: always
+   environment:
+     - TZ=Asia/Shanghai
+     - LOG_LEVEL=debug
+   ports:
+     - 5055:5055
+   volumes:
+     - ./jellyseerr/config:/app/config
+
+ watchtower:
+   image: containrrr/watchtower:latest
+   container_name: watchtower
+   hostname: watchtower
+   restart: always
+   command: -c -s "0 3 * * *"
+   environment:
+     - TZ=Asia/Shanghai
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+ default:
+   driver: bridge
+   name: video_net
